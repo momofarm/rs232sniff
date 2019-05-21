@@ -38,10 +38,7 @@ namespace rs232sniff
         
         void msgSent(object sender, MessageEventArgs e)
         {
-            //string textNow;
-
-            //richTextBox1.Invoke(new Action(() => textNow = richTextBox1.Text));
-
+            
             richTextBox1.Invoke(new Action(() =>
             {
                 string textNow = richTextBox1.Text;
@@ -61,17 +58,7 @@ namespace rs232sniff
 
         void msgReceved(object sender, MessageEventArgs e)
         {
-
-            /*
-            string textNow;
-
-            richTextBox1.Invoke(new Action(() => textNow = richTextBox1.Text));
-
-            textNow += "\r\n " + DateTime.Now.ToString("yyyy-MM-ddTHH:mm:sszzz") + " " + e.Message;
-
-            richTextBox1.Invoke(new Action(() => richTextBox1.Text = textNow));
-            */
-
+            
             richTextBox1.Invoke(new Action(() =>
             {
                 string textNow = richTextBox1.Text;
@@ -84,9 +71,7 @@ namespace rs232sniff
 
                 richTextBox1.ScrollToCaret();
             }));
-
-
-
+            
         }
 
 
@@ -170,9 +155,7 @@ namespace rs232sniff
                     }
                     else
                     {
-                        continue;
-                        //System.Threading.Thread.Sleep(1000);
-
+                        continue;         
                     }
 
                 }
@@ -215,18 +198,11 @@ namespace rs232sniff
 
         private string SendCmd(string cmd, SerialPort port)
         {
-            SerialPort serial_conn = null;
-
             string msg = "";
 
             try
             {
                 string[] allPortNames = System.IO.Ports.SerialPort.GetPortNames();
-
-
-                //serial_conn = new SerialPort(strComport, 9600, Parity.None, 8, StopBits.One);
-
-                //serial_conn.Open();
 
                 string cmd_to_send = cmd;// + "\r\n";
 
@@ -242,17 +218,8 @@ namespace rs232sniff
 
                 }
 
-
-                int count = 0;
-
-                //S S     0.0000 g\r
-                //S S     1.1752 g\r
                 Console.WriteLine(msg);
 
-                //MessageBox.Show(msg);
-                //textBox2.Text = msg;
-                //textBox2.Enabled = true;
-                //serial_conn.Close();
             }
             catch (Exception e)
             {
@@ -264,12 +231,8 @@ namespace rs232sniff
 
                 OnSentMsg(e2);
 
-                //throw new Exception(e.Message);
 
             }
-
-            //if (serial_conn != null)
-                //serial_conn.Close();
 
             return "";
         }
@@ -277,19 +240,12 @@ namespace rs232sniff
 
         private string ReadCmd(string cmd, SerialPort port)
         {
-            //SerialPort serial_conn = null;
-
             string msg = "";
 
             try
             {
                 string[] allPortNames = System.IO.Ports.SerialPort.GetPortNames();
-
-
-                //serial_conn = new SerialPort(strComport, 9600, Parity.None, 8, StopBits.One);
-
-                //serial_conn.Open();
-
+                
                 int count = 0;
 
                 do
@@ -309,10 +265,6 @@ namespace rs232sniff
                         break;
                     }
                     
-                    /*
-                    if (msg.Length > 0)
-                        break;
-                    */    
                     count = count + 1;
 
                     if (count > 3)
@@ -320,31 +272,21 @@ namespace rs232sniff
                         
                 }
                 while (true);
-
-
-                //S S     0.0000 g\r
-                //S S     1.1752 g\r
+                
                 Console.WriteLine(msg);
 
-                //MessageBox.Show(msg);
-                //textBox2.Text = msg;
-                //textBox2.Enabled = true;
-                //serial_conn.Close();
+               
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
 
-                //throw new Exception(e.Message);
                 MessageEventArgs e2 = new MessageEventArgs();
 
                 e2.Message = e.Message;
 
                 OnSentMsg(e2);
             }
-
-            //if (serial_conn != null)
-            //    serial_conn.Close();
             
                 return msg;
         }
