@@ -23,7 +23,7 @@ namespace rs232sniff
         {
             InitializeComponent();
 
-            w = new Worker();
+            w = new Worker("COM7", "COM6");
 
             w.eventMsgSent += msgSent;
 
@@ -99,8 +99,9 @@ namespace rs232sniff
         {
 
             w.StopThread();
+            w.disconn();
             t.Join();
-
+            
         }
     }
 
@@ -110,8 +111,31 @@ namespace rs232sniff
         public event EventHandler<MessageEventArgs> eventMsgSent;
 
         private static bool shouldStopped = false;
+        private static SerialPort serial_conn1 = null;
+        private static SerialPort serial_conn2 = null;
 
-        
+
+        public Worker(string com1, string com2)
+        {
+            serial_conn1 = new SerialPort(com1, 9600, Parity.None, 8, StopBits.One);
+
+            serial_conn1.Open();
+
+            serial_conn2 = new SerialPort(com2, 9600, Parity.None, 8, StopBits.One);
+
+            serial_conn2.Open();
+            
+        }
+
+        public void disconn()
+        {
+            if (serial_conn1 != null)
+                serial_conn1.Close();
+
+            if (serial_conn2 != null)
+                serial_conn2.Close();
+
+        }
 
         public void Work()
         {
@@ -119,29 +143,37 @@ namespace rs232sniff
             {
                 while (!shouldStopped)
                 {
-                    //string txt = "test read"; 
-                        //ReadCmd("", "COM1");
+                    
+                    // original command
+                    string response = ReadCmd("", serial_conn1);
 
-                    //System.Threading.Thread.Sleep(1000);
+                    System.Threading.Thread.Sleep(3000);
 
-                    //SendCmd(txt, "COM3");
+                    //  test only
+                    response = "PC send msg\r\n";
 
-                    //System.Threading.Thread.Sleep(1000);
+                    if (response.Length > 0)
+                    {
+                        SendCmd(response, serial_conn2);
 
-                    // read response from com3
+                        System.Threading.Thread.Sleep(3000);
 
-                    string response = ReadCmd("", "COM5");
+                        string response2 = ReadCmd("", serial_conn2);
 
-                    //System.Threading.Thread.Sleep(1000);
+                        //  test only 
+                        response2 = "PC send msg2\r\n";
 
-                    //if (response.Length > 0)
-                    SendCmd(response, "COM8");
+                        System.Threading.Thread.Sleep(3000);
 
-                    string response2 = ReadCmd("", "COM8");
+                        SendCmd(response2, serial_conn1);
 
-                    SendCmd(response2, "COM5");
+                    }
+                    else
+                    {
+                        continue;
+                        //System.Threading.Thread.Sleep(1000);
 
-                    //System.Threading.Thread.Sleep(1000);
+                    }
 
                 }
             }
@@ -181,7 +213,7 @@ namespace rs232sniff
             shouldStopped = true;
         }
 
-        private string SendCmd(string cmd, string strComport)
+        private string SendCmd(string cmd, SerialPort port)
         {
             SerialPort serial_conn = null;
 
@@ -192,13 +224,13 @@ namespace rs232sniff
                 string[] allPortNames = System.IO.Ports.SerialPort.GetPortNames();
 
 
-                serial_conn = new SerialPort(strComport, 9600, Parity.None, 8, StopBits.One);
+                //serial_conn = new SerialPort(strComport, 9600, Parity.None, 8, StopBits.One);
 
-                serial_conn.Open();
+                //serial_conn.Open();
 
                 string cmd_to_send = cmd;// + "\r\n";
 
-                serial_conn.Write(cmd_to_send); //weight
+                port.Write(cmd_to_send); //weight
 
                 if (cmd_to_send.Length > 0)
                 {
@@ -220,7 +252,7 @@ namespace rs232sniff
                 //MessageBox.Show(msg);
                 //textBox2.Text = msg;
                 //textBox2.Enabled = true;
-                serial_conn.Close();
+                //serial_conn.Close();
             }
             catch (Exception e)
             {
@@ -236,16 +268,16 @@ namespace rs232sniff
 
             }
 
-            if (serial_conn != null)
-                serial_conn.Close();
+            //if (serial_conn != null)
+                //serial_conn.Close();
 
             return "";
         }
 
 
-        private string ReadCmd(string cmd, string strComport)
+        private string ReadCmd(string cmd, SerialPort port)
         {
-            SerialPort serial_conn = null;
+            //SerialPort serial_conn = null;
 
             string msg = "";
 
@@ -254,9 +286,9 @@ namespace rs232sniff
                 string[] allPortNames = System.IO.Ports.SerialPort.GetPortNames();
 
 
-                serial_conn = new SerialPort(strComport, 9600, Parity.None, 8, StopBits.One);
+                //serial_conn = new SerialPort(strComport, 9600, Parity.None, 8, StopBits.One);
 
-                serial_conn.Open();
+                //serial_conn.Open();
 
                 int count = 0;
 
@@ -264,7 +296,7 @@ namespace rs232sniff
                 {
                     System.Threading.Thread.Sleep(1000);
 
-                    msg = serial_conn.ReadExisting();
+                    msg = port.ReadExisting();
 
                     if (msg.Length > 0)
                     {
@@ -273,15 +305,10 @@ namespace rs232sniff
                         e.Message = msg;
 
                         OnRecevedMsg(e);
-
                         
                         break;
                     }
-
-
-
-
-
+                    
                     /*
                     if (msg.Length > 0)
                         break;
@@ -302,7 +329,7 @@ namespace rs232sniff
                 //MessageBox.Show(msg);
                 //textBox2.Text = msg;
                 //textBox2.Enabled = true;
-                serial_conn.Close();
+                //serial_conn.Close();
             }
             catch (Exception e)
             {
@@ -316,8 +343,8 @@ namespace rs232sniff
                 OnSentMsg(e2);
             }
 
-            if (serial_conn != null)
-                serial_conn.Close();
+            //if (serial_conn != null)
+            //    serial_conn.Close();
             
                 return msg;
         }
