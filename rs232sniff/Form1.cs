@@ -202,8 +202,7 @@ namespace rs232sniff
 
             try
             {
-                string[] allPortNames = System.IO.Ports.SerialPort.GetPortNames();
-
+                
                 string cmd_to_send = cmd;// + "\r\n";
 
                 port.Write(cmd_to_send); //weight
@@ -244,8 +243,6 @@ namespace rs232sniff
 
             try
             {
-                string[] allPortNames = System.IO.Ports.SerialPort.GetPortNames();
-                
                 int count = 0;
 
                 do
