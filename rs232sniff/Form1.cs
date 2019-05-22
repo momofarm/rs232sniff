@@ -18,7 +18,7 @@ namespace rs232sniff
         private static Thread t;
 
         private Worker w; 
-
+        
         public Form1()
         {
             InitializeComponent();
@@ -28,14 +28,31 @@ namespace rs232sniff
             w.eventMsgSent += msgSent;
 
             w.recevedMesg += msgReceved;
+
+            var config = new NLog.Config.LoggingConfiguration();
+
+            var logfile = new NLog.Targets.FileTarget("logfile") { FileName = "c:\\rs232sniff\\log.txt" };
+            var logconsole = new NLog.Targets.ConsoleTarget("logconsole");
             
+            
+            config.AddRule(NLog.LogLevel.Info, NLog.LogLevel.Fatal, logconsole);
+
+            config.AddRule(NLog.LogLevel.Debug, NLog.LogLevel.Fatal, logfile);
+
+            NLog.LogManager.Configuration = config;
+
             t = new Thread(w.Work);
 
             t.Start();
             
         }
 
-        
+        private void writeLog(string log)
+        {
+            var logger = NLog.LogManager.GetCurrentClassLogger();
+            logger.Info(log);
+        }
+
         void msgSent(object sender, MessageEventArgs e)
         {
             
@@ -95,7 +112,8 @@ namespace rs232sniff
             string text = richTextBox1.Text;
 
             opensaveFileDialog(text);
-            
+
+            writeLog("[File Save] Save logging");
         }
 
         private void opensaveFileDialog(string text)
@@ -103,7 +121,7 @@ namespace rs232sniff
             // Displays a SaveFileDialog so the user can save the Image  
             // assigned to Button2.  
             SaveFileDialog saveFileDialog1 = new SaveFileDialog();
-            saveFileDialog1.Filter = "Text File|*.txt|";
+            saveFileDialog1.Filter = "Text File|*.txt";
             saveFileDialog1.Title = "Save an Text File";
             saveFileDialog1.ShowDialog();
 
@@ -152,13 +170,39 @@ namespace rs232sniff
             
         }
 
+        private void writeLog(string log)
+        {
+            var logger = NLog.LogManager.GetCurrentClassLogger();
+
+            logger.Info(log);
+        }
+
         public void disconn()
         {
-            if (serial_conn1 != null)
-                serial_conn1.Close();
+            writeLog("Worker: disconnecting serial");
 
-            if (serial_conn2 != null)
-                serial_conn2.Close();
+            try
+            {
+                if (serial_conn1 != null)
+                {
+                    serial_conn1.Close();
+                    writeLog("Worker: disconnecting serial conn1");
+
+                }
+
+                if (serial_conn2 != null)
+                {
+                    serial_conn2.Close();
+                    writeLog("Worker: disconnecting serial conn2");
+
+                }
+            }
+            catch(Exception e)
+            {
+                writeLog("Worker: disconnecting serial excepton catched " + e.Message);
+
+            }
+
 
         }
 
@@ -168,9 +212,9 @@ namespace rs232sniff
             {
                 while (!shouldStopped)
                 {
-                    
                     // original command
                     string response = ReadCmd("", serial_conn1);
+                    writeLog("Worker: Getting message from machine1 " + response);
 
                     System.Threading.Thread.Sleep(3000);
 
@@ -179,11 +223,15 @@ namespace rs232sniff
 
                     if (response.Length > 0)
                     {
+                        writeLog("Worker: sending message to machine2 " + response);
+
                         SendCmd(response, serial_conn2);
 
                         System.Threading.Thread.Sleep(3000);
 
                         string response2 = ReadCmd("", serial_conn2);
+
+                        writeLog("Worker: Getting reply message from machine2 " + response2);
 
                         //  test only 
                         response2 = "PC send msg2\r\n";
@@ -191,6 +239,8 @@ namespace rs232sniff
                         System.Threading.Thread.Sleep(3000);
 
                         SendCmd(response2, serial_conn1);
+                        writeLog("Worker: Sending reply message to machine1 " + response2);
+
 
                     }
                     else
