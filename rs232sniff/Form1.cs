@@ -23,7 +23,7 @@ namespace rs232sniff
         {
             InitializeComponent();
 
-            w = new Worker("COM7", "COM6");
+            w = new Worker("COM6", "COM8");
 
             w.eventMsgSent += msgSent;
 
