@@ -23,7 +23,7 @@ namespace rs232sniff
         {
             InitializeComponent();
 
-            w = new Worker("COM7", "COM6");
+            w = new Worker("COM8", "COM6");
 
             w.eventMsgSent += msgSent;
 
@@ -43,7 +43,7 @@ namespace rs232sniff
 
             t = new Thread(w.Work);
 
-            t.Start();
+            //t.Start();
             
         }
 
@@ -99,7 +99,7 @@ namespace rs232sniff
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
-
+            
             w.StopThread();
             w.disconn();
             t.Join();
@@ -162,9 +162,13 @@ namespace rs232sniff
         {
             serial_conn1 = new SerialPort(com1, 9600, Parity.None, 8, StopBits.One);
 
+            serial_conn1.DataReceived += new SerialDataReceivedEventHandler(OnSerialRecvMsg_serial1);
+
             serial_conn1.Open();
 
             serial_conn2 = new SerialPort(com2, 9600, Parity.None, 8, StopBits.One);
+            
+            serial_conn2.DataReceived += new SerialDataReceivedEventHandler(OnSerialRecvMsg_serial2);
 
             serial_conn2.Open();
             
@@ -206,6 +210,43 @@ namespace rs232sniff
 
         }
 
+        public void OnSerialRecvMsg_serial1(object sender, SerialDataReceivedEventArgs e)
+        {
+            string s = serial_conn1.ReadExisting();
+
+            string msg = "serial1  getting message " + s + "\r\n";
+            sendMsg(s);
+        }
+
+        private void NewMethod(string s)
+        {
+            if (s.Length > 0)
+            {
+                MessageEventArgs e2 = new MessageEventArgs();
+
+                e2.Message = "serial1 gettiing message " + s + "\r\n";
+
+                OnSentMsg(e2);
+
+            }
+        }
+
+        public void OnSerialRecvMsg_serial2(object sender, SerialDataReceivedEventArgs e)
+        {
+            string s = serial_conn2.ReadExisting();
+
+            if (s.Length > 0)
+            {
+                MessageEventArgs e2 = new MessageEventArgs();
+
+                e2.Message = "serial2 gettiing message " + s + "\r\n";
+
+                OnSentMsg(e2);
+
+            }
+        }
+
+
         public void Work()
         {
             try
@@ -216,10 +257,11 @@ namespace rs232sniff
                     string response = ReadCmd("", serial_conn1);
                     writeLog("Worker: Getting message from machine1 " + response);
 
-                    System.Threading.Thread.Sleep(3000);
+                    //100 => partical working
+                    System.Threading.Thread.Sleep(100);
 
                     //  test only
-                    response = "PC send msg\r\n";
+                    //response = "PC send msg\r\n";
 
                     if (response.Length > 0)
                     {
@@ -227,24 +269,27 @@ namespace rs232sniff
 
                         SendCmd(response, serial_conn2);
 
-                        System.Threading.Thread.Sleep(3000);
+                        //System.Threading.Thread.Sleep(100);
 
                         string response2 = ReadCmd("", serial_conn2);
 
                         writeLog("Worker: Getting reply message from machine2 " + response2);
 
                         //  test only 
-                        response2 = "PC send msg2\r\n";
+                        //response2 = "PC send msg2\r\n";
 
-                        System.Threading.Thread.Sleep(3000);
+                        //System.Threading.Thread.Sleep(1000);
 
                         SendCmd(response2, serial_conn1);
                         writeLog("Worker: Sending reply message to machine1 " + response2);
 
+                        System.Threading.Thread.Sleep(100);
 
                     }
                     else
                     {
+                        System.Threading.Thread.Sleep(100);
+
                         continue;         
                     }
 
@@ -265,8 +310,7 @@ namespace rs232sniff
 
             if (handler != null)
             {
-                handler(this, e);
-            }
+                handler(this, e);            }
         }
 
         protected virtual void OnSentMsg(MessageEventArgs e)
@@ -334,10 +378,15 @@ namespace rs232sniff
             try
             {
                 int count = 0;
-
+            
                 do
                 {
-                    System.Threading.Thread.Sleep(1000);
+                    //100 => only one sampling process work
+                    //50  ==> not working
+                    //  80 ==> not working
+                    //90 = partical working 
+                    // 95
+                    System.Threading.Thread.Sleep(100);
 
                     msg = port.ReadExisting();
 
