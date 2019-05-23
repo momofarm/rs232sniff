@@ -32,6 +32,7 @@ namespace rs232sniff
             var config = new NLog.Config.LoggingConfiguration();
 
             var logfile = new NLog.Targets.FileTarget("logfile") { FileName = "c:\\rs232sniff\\log.txt" };
+
             var logconsole = new NLog.Targets.ConsoleTarget("logconsole");
             
             
@@ -215,10 +216,39 @@ namespace rs232sniff
             string s = serial_conn1.ReadExisting();
 
             string msg = "serial1  getting message " + s + "\r\n";
-            sendMsg(s);
+
+            popMsg(s);
+
+            //write to serial 2
+            SendCmd(s, serial_conn2);
+
+            // read from serial 2
+            string r2 = ReadCmd("", serial_conn2);
+
+            //send serial 1
+            SendCmd(r2, serial_conn1);
+
+        }
+        
+        public void OnSerialRecvMsg_serial2(object sender, SerialDataReceivedEventArgs e)
+        {
+            string s = serial_conn2.ReadExisting();
+
+            string msg = "serial2  getting message " + s + "\r\n";
+
+            popMsg(msg);
+
+            //write to serial 1
+            SendCmd(s, serial_conn1);
+
+            // read from serial 1
+            ReadCmd("", serial_conn1);
+
+            //send serial 2
+            SendCmd("", serial_conn2);
         }
 
-        private void NewMethod(string s)
+        private void popMsg(string s)
         {
             if (s.Length > 0)
             {
@@ -230,22 +260,6 @@ namespace rs232sniff
 
             }
         }
-
-        public void OnSerialRecvMsg_serial2(object sender, SerialDataReceivedEventArgs e)
-        {
-            string s = serial_conn2.ReadExisting();
-
-            if (s.Length > 0)
-            {
-                MessageEventArgs e2 = new MessageEventArgs();
-
-                e2.Message = "serial2 gettiing message " + s + "\r\n";
-
-                OnSentMsg(e2);
-
-            }
-        }
-
 
         public void Work()
         {
