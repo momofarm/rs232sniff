@@ -225,6 +225,8 @@ namespace rs232sniff
             // read from serial 2
             string r2 = ReadCmd("", serial_conn2);
 
+            popMsg("read reply from serial2 " + r2 + "\r\n");
+
             //send serial 1
             SendCmd(r2, serial_conn1);
 
@@ -242,10 +244,14 @@ namespace rs232sniff
             SendCmd(s, serial_conn1);
 
             // read from serial 1
-            ReadCmd("", serial_conn1);
+            string s2 = ReadCmd("", serial_conn1);
+
+            string msg2 = "read reply from serial 1 " + s2 + "\r\n";
+
+            popMsg(msg2);
 
             //send serial 2
-            SendCmd("", serial_conn2);
+            SendCmd(s2, serial_conn2);
         }
 
         private void popMsg(string s)
